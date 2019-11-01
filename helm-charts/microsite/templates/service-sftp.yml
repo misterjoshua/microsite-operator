@@ -1,0 +1,21 @@
+{{- if .Values.sftp.enabled -}}
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ template "microsite.fullname" . }}-sftp
+  labels:
+    app: {{ template "microsite.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  type: {{ .Values.sftp.service.type }}
+  selector:
+    app: {{ template "microsite.name" . }}
+    release: {{ .Release.Name }}
+  ports:
+  - port: {{ .Values.sftp.service.port }}
+    targetPort: 22
+    protocol: TCP
+    name: sftpd
+{{- end -}}

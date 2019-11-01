@@ -1,0 +1,19 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: {{ template "microsite.fullname" . }}
+  labels:
+    app: {{ template "microsite.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  type: {{ .Values.httpd.service.type }}
+  selector:
+    app: {{ template "microsite.name" . }}
+    release: {{ .Release.Name }}
+  ports:
+  - port: {{ .Values.httpd.service.port }}
+    targetPort: 80
+    protocol: TCP
+    name: httpd

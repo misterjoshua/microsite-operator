@@ -1,0 +1,28 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "microsite.fullname" . }}
+  annotations:
+    {{- toYaml .Values.ingress.annotations | indent 4 }}
+spec:
+  {{- if .Values.ingress.tls }}
+  tls:
+  - secretName: {{ template "microsite.fullname" . }}-tls
+    hosts:
+    {{- range .Values.ingress.domains }}
+    - {{ . | quote }}
+    {{ end -}}
+  {{- end }}
+  rules:
+  {{- $root := . -}}
+  {{- range $i, $host := .Values.ingress.domains }}
+  - host: {{ $host }}
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: {{ template "microsite.fullname" $root }}
+          servicePort: {{ $root.Values.httpd.service.port }}
+  {{ end -}}
+{{- end }}
