@@ -3,11 +3,8 @@ init:
 
 resources:
   requests:
-    cpu: 1m
-    memory: 1Mi
-  # limits:
-  #   cpu: 1000m
-  #   memory: 1024Mi
+    cpu: 500m
+    memory: 128Mi
 
 persistence:
   enabled: true
@@ -19,25 +16,34 @@ persistence:
 httpd:
   service:
     type: ClusterIP
-    port: 80
-  repository: "httpd"
-  tag: "2.4-alpine"
-  resources: false
-  #  requests:
-  #    cpu: 1m
-  #    memory: 1Mi
+  image: httpd:2.4-alpine
+  resources:
+    requests:
+      cpu: 1m
+      memory: 1Mi
+    limits:
+      cpu: 500m
+      memory: 128Mi
 
 sftp:
   enabled: false
   service:
     type: LoadBalancer
-    port: 1022
-  repository: "atmoz/sftp"
-  tag: "alpine"
+    port: 22
+  image: atmoz/sftp:alpine
   port: 22
   user: user
   password: changeme
-  resources: false
-  #  requests:
-  #    cpu: 1m
-  #    memory: 1Mi
+  resources:
+    requests:
+      cpu: 1m
+      memory: 1Mi
+    limits:
+      cpu: 500m
+      memory: 32Mi
+
+ingress:
+  enabled: false
+  hosts:
+    - example.com
+  tls: []

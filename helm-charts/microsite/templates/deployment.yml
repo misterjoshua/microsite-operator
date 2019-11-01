@@ -16,69 +16,67 @@ spec:
         release: {{ .Release.Name }}
     spec:
       initContainers:
-### CREATE ASSETS DIR
-      - name: init-mkdir-assets
-        image: busybox
-        command: ["sh", "-c", "mkdir -p /data/web/assets/images"]
-        volumeMounts:
-        - name: httpd-data
-          mountPath: /data/web
-          subPath: web
-### CHOWN WEB DATA TO WEB USER
-      - name: init-chown-web
-        image: busybox
-        command: ["sh", "-c", "chown -R 33:33 /data/web"]
-        volumeMounts:
-        - name: httpd-data
-          mountPath: /data/web
-          subPath: web
+        ### CREATE ASSETS DIR
+        - name: init-mkdir-assets
+          image: busybox
+          command: ["sh", "-c", "mkdir -p /data/web/assets/images"]
+          volumeMounts:
+            - name: httpd-data
+              mountPath: /data/web
+              subPath: web
+
+        ### CHOWN WEB DATA TO WEB USER
+        - name: init-chown-web
+          image: busybox
+          command: ["sh", "-c", "chown -R 33:33 /data/web"]
+          resources:
+{{ toYaml (default .Values.resources .Values.init.resources) | indent 12 }}
+          volumeMounts:
+            - name: httpd-data
+              mountPath: /data/web
+              subPath: web
 
       containers:
-### HTTPD CONTAINER
-      - name: "httpd"
-        image: "{{ .Values.httpd.repository }}:{{ .Values.httpd.tag }}"
-        imagePullPolicy: "Always"
-        ports:
-        - containerPort: 80
-        volumeMounts:
-        - name: httpd-data
-          mountPath: /var/www/html
-          subPath: web
+        ### HTTPD CONTAINER
+        - name: "httpd"
+          image: "{{ .Values.httpd.image }}"
+          imagePullPolicy: "Always"
+          ports:
+            - containerPort: 80
           resources:
-            {{- if .Values.init.resources }}
-{{ toYaml .Values.init.resources | indent 12 }}
-            {{- else }}
-{{ toYaml .Values.resources | indent 12 }}
-            {{- end }}
-### SFTP CONTAINER
-      - name: sftp
-        image: "{{ .Values.sftp.repository }}:{{ .Values.sftp.tag }}"
-        command: [/bin/bash, -c, "bash /entrypoint $SFTP_USER:$SFTP_PASSWORD:33:33"]
-        ports:
-        - containerPort: 22
-        env:
-        - name: SFTP_USER
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "microsite.fullname" . }}
-              key: sftp-user
-        - name: SFTP_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: {{ template "microsite.fullname" . }}
-              key: sftp-password
-        # Volumes
-        volumeMounts:
-          - name: httpd-data
-            mountPath: "/home/{{ .Values.sftp.user }}/web"
-            subPath: web
-        # Resources
-        {{- if .Values.sftp.resources }}
-{{ toYaml .Values.sftp.resources | indent 12 }}
-        {{- else }}
-{{ toYaml .Values.resources | indent 12 }}
-        {{- end }}
+{{ toYaml (default .Values.resources .Values.httpd.resources) | indent 12 }}
+          volumeMounts:
+            - name: httpd-data
+              mountPath: /var/www/html
+              subPath: web
+
+        ### SFTP CONTAINER
+        - name: sftp
+          image: "{{ .Values.sftp.image }}"
+          command: [/bin/bash, -c, "bash /entrypoint $SFTP_USER:$SFTP_PASSWORD:33:33"]
+          ports:
+            - containerPort: 22
+          resources:
+{{ toYaml (default .Values.resources .Values.sftp.resources) | indent 12 }}
+          env:
+            - name: SFTP_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "microsite.fullname" . }}
+                  key: sftp-user
+            - name: SFTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ template "microsite.fullname" . }}
+                  key: sftp-password
+          # Volumes
+          volumeMounts:
+            - name: httpd-data
+              mountPath: "/home/{{ .Values.sftp.user }}/web"
+              subPath: web
+
+      ### POD VOLUMES
       volumes:
-      - name: httpd-data
-        persistentVolumeClaim:
-          claimName: {{ template "microsite.fullname" . }}
+        - name: httpd-data
+          persistentVolumeClaim:
+            claimName: {{ template "microsite.fullname" . }}

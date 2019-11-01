@@ -2,4 +2,4 @@
 - version: v1alpha1
   group: microsite-operator.misterjoshua.github.com
   kind: MicroSite
-  chart: /opt/helm/helm-charts/microsite
+  chart: helm-charts/microsite

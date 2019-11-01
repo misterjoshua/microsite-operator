@@ -13,7 +13,7 @@ spec:
     app: {{ template "microsite.name" . }}
     release: {{ .Release.Name }}
   ports:
-  - port: {{ .Values.httpd.service.port }}
+  - port: 80
     targetPort: 80
     protocol: TCP
     name: httpd

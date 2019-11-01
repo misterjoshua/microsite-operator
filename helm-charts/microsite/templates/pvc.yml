@@ -6,19 +6,14 @@ metadata:
     app: {{ template "microsite.name" . }}
     heritage: {{ .Release.Service }}
     release: {{ .Release.Name }}
-  {{- if .Values.persistence.keep }}
+  annotations:
+  {{ if .Values.persistence.keep }}
     helm.sh/resource-policy: keep
-  {{- end }}
+  {{ end }}
 spec:
+  storageClassName: {{ .Values.persistence.storageClass | quote }}
   accessModes:
-  - {{ .Values.persistence.accessMode | quote }}
+    - {{ .Values.persistence.accessMode | quote }}
   resources:
     requests:
       storage: {{ .Values.persistence.size | quote }}
-{{- if .Values.persistence.storageClass }}
-{{- if (eq "-" .Values.persistence.storageClass) }}
-  storageClassName: ""
-{{- else }}
-  storageClassName: "{{ .Values.persistence.storageClass }}"
-{{- end }}
-{{- end }}
